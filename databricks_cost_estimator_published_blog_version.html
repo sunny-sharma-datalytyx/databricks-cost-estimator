@@ -1,0 +1,1187 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Mphasis Datalytyx Databricks Cost Estimator</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          Oxygen, Ubuntu, Cantarell, sans-serif;
+        background: #ffffff;
+        color: #2e3436;
+        padding: 20px;
+        line-height: 1.6;
+      }
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+      }
+      header {
+        background: linear-gradient(135deg, #061c3c 0%, #0a2540 100%);
+        color: white;
+        padding: 3rem 2rem;
+        border-radius: 8px;
+        margin-bottom: 2rem;
+        box-shadow: 0 4px 12px rgba(6, 28, 60, 0.15);
+        text-align: center;
+        position: relative;
+        overflow: hidden;
+      }
+      .databricks-logo {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        width: 120px;
+        height: 40px;
+        background: linear-gradient(135deg, #f6eeee, #e62e00);
+        border-radius: 6px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 14px;
+        font-weight: 600;
+        color: white;
+        box-shadow: 0 2px 8px rgba(245, 138, 0, 0.3);
+        text-transform: lowercase;
+        letter-spacing: 0.5px;
+      }
+      .databricks-logo::before {
+        content: "🔶";
+        margin-right: 4px;
+        font-size: 18px;
+      }
+      h1 {
+        font-size: 2.25rem;
+        margin-bottom: 0.5rem;
+        font-weight: 600;
+        color: white;
+      }
+      .subtitle {
+        font-size: 1.125rem;
+        opacity: 0.9;
+        color: rgba(255, 255, 255, 0.9);
+      }
+      .section-card {
+        background: #ffffff;
+        border-radius: 8px;
+        padding: 2rem;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        border: 1px solid #e1e5e9;
+      }
+      .section-header {
+        font-size: 1.25rem;
+        margin-bottom: 1.5rem;
+        color: #061c3c;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+      }
+      .databricks-badge {
+        background: linear-gradient(135deg, #f58a00, #e66a00);
+        color: white;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+      .input-group {
+        margin-bottom: 1.5rem;
+      }
+      .input-label {
+        display: block;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        color: #2e3436;
+        font-size: 0.95rem;
+      }
+      input[type="number"],
+      select {
+        width: 100%;
+        padding: 12px 16px;
+        border: 1px solid #d1d5db;
+        border-radius: 6px;
+        font-size: 1rem;
+        transition: all 0.15s ease;
+        background: #fafbfc;
+        color: #2e3436;
+      }
+      input[type="number"]:focus,
+      select:focus {
+        outline: none;
+        border-color: #f58a00;
+        box-shadow: 0 0 0 3px rgba(245, 138, 0, 0.1);
+        background: white;
+      }
+      input[type="number"].invalid {
+        border-color: #e74c3c;
+        background-color: #fdf2f2;
+      }
+      .slider-container {
+        margin-bottom: 1rem;
+      }
+      .slider {
+        width: 100%;
+        height: 4px;
+        border-radius: 2px;
+        background: #e1e5e9;
+        outline: none;
+        -webkit-appearance: none;
+        margin: 10px 0;
+        accent-color: #f58a00;
+      }
+      .slider::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        background: #f58a00;
+        cursor: pointer;
+        box-shadow: 0 1px 4px rgba(245, 138, 0, 0.3);
+      }
+      .slider::-moz-range-thumb {
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        background: #f58a00;
+        cursor: pointer;
+        border: none;
+        box-shadow: 0 1px 4px rgba(245, 138, 0, 0.3);
+      }
+      .slider-value {
+        font-weight: 600;
+        color: #f58a00;
+        font-size: 1rem;
+        text-align: center;
+        margin-top: 0.5rem;
+      }
+      .help-text {
+        font-size: 0.875rem;
+        color: #6c757d;
+        margin-top: 0.5rem;
+        line-height: 1.5;
+        padding-left: 12px;
+        border-left: 2px solid #e9ecef;
+      }
+      .optional-field {
+        background-color: #fffbeb;
+        border: 1px dashed #f58a00;
+      }
+      .disclaimer {
+        background: #fff3cd;
+        border: 1px solid #f58a00;
+        border-radius: 6px;
+        padding: 12px;
+        margin-top: 1rem;
+        font-size: 0.875rem;
+        color: #856404;
+      }
+      .results-section {
+        background: linear-gradient(135deg, #061c3c 0%, #0a2540 100%);
+        color: white;
+        padding: 2rem;
+        border-radius: 8px;
+        text-align: center;
+        box-shadow: 0 4px 12px rgba(6, 28, 60, 0.15);
+        border: 1px solid #f58a00;
+        margin-bottom: 1.5rem;
+      }
+      .total-amount {
+        font-size: 3rem;
+        font-weight: 600;
+        margin: 1rem 0;
+        color: #f58a00;
+      }
+      .breakdown-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 1rem;
+        margin-top: 2rem;
+      }
+      .breakdown-item {
+        background: rgba(255, 255, 255, 0.1);
+        padding: 1rem;
+        border-radius: 6px;
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        transition: all 0.15s ease;
+      }
+      .breakdown-item:hover {
+        background: rgba(255, 255, 255, 0.15);
+        transform: translateY(-1px);
+      }
+      .breakdown-label {
+        font-size: 0.875rem;
+        opacity: 0.8;
+        margin-bottom: 0.25rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+      .breakdown-value {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: #f58a00;
+      }
+      .btn {
+        background: linear-gradient(135deg, #f58a00, #e66a00);
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 6px;
+        font-size: 0.95rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.15s ease;
+        margin-right: 1rem;
+        box-shadow: 0 2px 8px rgba(245, 138, 0, 0.2);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+      .btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(245, 138, 0, 0.3);
+      }
+      .btn-group {
+        margin-top: 1.5rem;
+        text-align: center;
+      }
+      .workspace-warning {
+        background: #fff3cd;
+        border: 1px solid #f58a00;
+        border-radius: 6px;
+        padding: 12px;
+        margin-top: 1rem;
+        font-size: 0.875rem;
+        color: #856404;
+      }
+      .security-info {
+        background: #d1ecf1;
+        border: 1px solid #0ea5e9;
+        border-radius: 6px;
+        padding: 8px;
+        margin-top: 0.5rem;
+        font-size: 0.8rem;
+        color: #0c5460;
+      }
+      .tips-list {
+        padding-left: 0;
+        list-style: none;
+      }
+      .tips-list li {
+        padding: 1rem;
+        margin-bottom: 0.5rem;
+        background: #f8f9fa;
+        border-radius: 6px;
+        border-left: 4px solid #f58a00;
+        position: relative;
+      }
+      .tips-list li::before {
+        content: "⭐";
+        position: absolute;
+        left: 8px;
+        top: 33%;
+        transform: translateY(-50%);
+        color: #f58a00;
+        margin-right: 8px;
+      }
+      .tips-list li strong {
+        margin-left: 24px;
+        display: block;
+      }
+      .comparison-table {
+        display: none;
+        margin-top: 1rem;
+      }
+      .comparison-table.active {
+        display: block;
+      }
+      .comparison-row {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 0.5rem;
+      }
+      .comparison-cell {
+        flex: 1;
+        background: rgba(255, 255, 255, 0.1);
+        padding: 1rem;
+        border-radius: 6px;
+        text-align: center;
+      }
+      .expandable {
+        cursor: pointer;
+        font-weight: 600;
+        color: #f58a00;
+      }
+      .expandable-content {
+        display: none;
+        margin-top: 1rem;
+      }
+      .expandable-content.active {
+        display: block;
+      }
+      @media (max-width: 768px) {
+        .total-amount {
+          font-size: 2.25rem;
+        }
+        .breakdown-grid {
+          grid-template-columns: 1fr;
+        }
+        .databricks-logo {
+          width: 100px;
+          height: 36px;
+          font-size: 12px;
+          top: 10px;
+          right: 10px;
+        }
+        .section-header {
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 0.5rem;
+        }
+        body {
+          padding: 10px;
+        }
+        .comparison-row {
+          flex-direction: column;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <div class="databricks-logo">databricks</div>
+        <h1>🏢 Databricks Cost Estimator 🧮</h1>
+        <p class="subtitle">
+          An easy to use 4-step process for cost modeling for Dev, Staging, and
+          Production Databricks environments
+        </p>
+        <p style="font-size: 0.95rem; opacity: 0.8; margin-top: 1rem">
+          Created by Sunny Sharma, Mphasis Datalytyx • Correct as of October
+          2025 Pricing
+        </p>
+        <div
+          class="disclaimer"
+          style="
+            margin-top: 1rem;
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.2);
+            color: rgba(255, 255, 255, 0.8);
+          "
+        >
+          <strong>Disclaimer:</strong> Estimates based on 2025 pricing (last
+          updated: Oct 16, 2025, 10:37 AM BST). Contact Databricks for official
+          quotes and custom pricing.
+        </div>
+      </header>
+
+      <div class="section-card">
+        <div class="section-header">
+          ⚙️ <span>Workspace Configuration</span>
+          <span class="databricks-badge">Step 1</span>
+        </div>
+        <div class="input-group">
+          <label class="input-label">Cloud Provider</label>
+          <select
+            id="cloud"
+            onchange="updateTiers(); calculate(); toggleComparison()"
+          >
+            <option value="aws">Amazon Web Services (AWS)</option>
+            <option value="azure">Microsoft Azure</option>
+            <option value="gcp">Google Cloud Platform (GCP)</option>
+          </select>
+          <div class="help-text">
+            Select your cloud platform for region-specific pricing and feature
+            availability
+          </div>
+        </div>
+        <div class="input-group">
+          <label class="input-label">Deployment Region</label>
+          <select id="region" onchange="calculate()">
+            <option value="us">United States (Standard)</option>
+            <option value="eu">Europe (+10% Premium)</option>
+            <option value="asia">Asia Pacific (+8% Premium)</option>
+          </select>
+          <div class="help-text">
+            Region selection impacts latency, compliance, and Databricks feature
+            availability
+          </div>
+        </div>
+        <div class="input-group">
+          <label class="input-label">Security Configuration</label>
+          <select id="securityLevel" onchange="calculate()">
+            <option value="basic">Basic (Public IP Access)</option>
+            <option value="standard" selected>
+              Standard (VNet + No Public IP)
+            </option>
+            <option value="advanced">
+              Advanced (Private Endpoints + Compliance)
+            </option>
+          </select>
+          <div class="security-info">
+            Advanced security adds networking and compliance costs
+          </div>
+        </div>
+        <div class="input-group">
+          <label class="input-label">Workspace Tier</label>
+          <select id="tier" onchange="calculate()">
+            <option value="premium">Premium Tier</option>
+            <option value="enterprise" selected>Enterprise Tier (+10%)</option>
+          </select>
+          <div class="help-text">
+            Databricks Enterprise (on AWS/GCP) includes Enhanced Security
+            Configuration (an add-on in Azure Databricks)
+          </div>
+        </div>
+        <div class="input-group">
+          <label class="input-label">Commitment Contract</label>
+          <select id="commitment" onchange="calculate()">
+            <option value="payg">Pay As You Go</option>
+            <option value="1year">1-Year Commitment (20% off DBUs)</option>
+            <option value="3year">3-Year Commitment (35% off DBUs)</option>
+          </select>
+          <div class="help-text">Discounts apply only to DBU costs</div>
+        </div>
+        <div class="input-group" id="supportGroup">
+          <label class="input-label">Support Cost Override</label>
+          <input
+            type="number"
+            id="supportOverride"
+            min="0"
+            placeholder="Auto: 10% of total DBU costs"
+            class="optional-field"
+            onchange="calculate()"
+          />
+          <div class="help-text">
+            Azure support included. AWS/GCP: ~10% of DBU unless custom
+          </div>
+        </div>
+        <div class="input-group">
+          <label class="input-label">Photon Acceleration</label>
+          <select id="photon" onchange="calculate()">
+            <option value="true" selected>
+              Enabled (1.4x DBUs, 2-3x faster)
+            </option>
+            <option value="false">Disabled</option>
+          </select>
+          <div class="help-text">Enables optimized compute (default: on)</div>
+        </div>
+        <div class="input-group">
+          <label class="input-label">Spot Instance Pricing</label>
+          <select id="spotPricing" onchange="calculate()">
+            <option value="false" selected>Disabled (On-Demand Pricing)</option>
+            <option value="true">Enabled (up to 70% Cost Reduction)</option>
+          </select>
+          <div class="help-text">
+            Use spot instances for non-critical workloads to reduce compute
+            costs by up to 70% (default: off)
+          </div>
+        </div>
+      </div>
+
+      <div class="section-card">
+        <div class="section-header">
+          🏢 <span>Databricks Environments (Workspaces)</span>
+          <span class="databricks-badge">Step 2</span>
+        </div>
+        <div class="input-group">
+          <label class="input-label"
+            >Production Workload Hours
+            <span style="color: #e74c3c">*</span></label
+          >
+          <input
+            type="number"
+            id="prodHours"
+            value="800"
+            min="1"
+            max="100000"
+            onchange="validateInputs(); calculate();"
+            required
+          />
+          <div class="help-text">
+            Total hours across all Production clusters (max 100,000/year)
+          </div>
+        </div>
+        <div class="input-group">
+          <label class="input-label">Number of Workspaces</label>
+          <select id="workspaceCount" onchange="calculate()">
+            <option value="3" selected>
+              3 Workspaces (Dev + Staging + Production) ⭐
+            </option>
+            <option value="2">2 Workspaces (Dev/Prod)</option>
+            <option value="1">
+              1 Workspace (Monolithic - Not Recommended)
+            </option>
+          </select>
+          <div class="help-text">
+            Separate workspaces for isolation and governance
+          </div>
+          <div class="workspace-warning">
+            <strong>Best Practice:</strong> Use 3 workspaces for MLOps lifecycle
+            <br /><small
+              ><strong>Cost Impact:</strong> ~$51/month per workspace</small
+            >
+          </div>
+        </div>
+        <div class="input-group">
+          <label class="input-label">Staging Workspace Scale</label>
+          <select id="stagingScale" onchange="calculate()">
+            <option value="0.5">50% of Production</option>
+            <option value="0.3">30% of Production</option>
+            <option value="0.2" selected>20% of Production</option>
+            <option value="0.1">10% of Production</option>
+          </select>
+          <div class="help-text">Pre-production testing environment</div>
+        </div>
+        <div class="input-group">
+          <label class="input-label">Development Workspace Scale</label>
+          <select id="devScale" onchange="calculate()">
+            <option value="0.2">20% of Production</option>
+            <option value="0.1" selected>10% of Production</option>
+            <option value="0.05">5% of Production</option>
+            <option value="0">No Development Workspace</option>
+          </select>
+          <div class="help-text">Experimentation and prototyping</div>
+        </div>
+      </div>
+
+      <div class="section-card">
+        <div class="section-header">
+          📊 <span>Workload Composition</span>
+          <span class="databricks-badge">Step 3</span>
+        </div>
+        <div class="input-group">
+          <label class="input-label">Data Engineering Workloads</label>
+          <div class="slider-container">
+            <input
+              type="range"
+              id="engMix"
+              class="slider"
+              min="0"
+              max="100"
+              value="60.0"
+              onchange="updateSliders(); calculate();"
+              oninput="validateSliders()"
+            />
+            <div class="slider-value" id="engValue">63%</div>
+          </div>
+          <div class="help-text">
+            ETL pipelines, Delta Live Tables, Jobs Compute
+          </div>
+        </div>
+        <div class="input-group">
+          <label class="input-label">Data Science Workloads</label>
+          <div class="slider-container">
+            <input
+              type="range"
+              id="dsMix"
+              class="slider"
+              min="0"
+              max="100"
+              value="20.0"
+              onchange="updateSliders(); calculate();"
+              oninput="validateSliders()"
+            />
+            <div class="slider-value" id="dsValue">19%</div>
+          </div>
+          <div class="help-text">All-Purpose Compute, MLflow Training</div>
+        </div>
+        <div class="input-group">
+          <label class="input-label">Data Analytics Workloads</label>
+          <div class="slider-container">
+            <input
+              type="range"
+              id="analMix"
+              class="slider"
+              min="0"
+              max="100"
+              value="20.0"
+              onchange="updateSliders(); calculate();"
+              oninput="validateSliders()"
+            />
+            <div class="slider-value" id="analValue">19%</div>
+          </div>
+          <div class="help-text">SQL Compute, Serverless SQL Warehouses</div>
+        </div>
+        <div
+          class="help-text"
+          id="sliderValidation"
+          style="
+            font-weight: 600;
+            color: #061c3c;
+            text-align: center;
+            background: #fff3cd;
+            padding: 12px;
+            border-radius: 6px;
+            margin-top: 1rem;
+            border-left: 4px solid #f58a00;
+          "
+        >
+          <strong>Total Allocation:</strong>
+          <span id="totalMix" style="color: #f58a00">100%</span> | Must equal
+          100%
+        </div>
+        <div class="btn-group" style="margin-top: 1rem">
+          <button class="btn" onclick="applyPreset('etl')">ETL-Heavy</button>
+          <button class="btn" onclick="applyPreset('ml')">ML-Heavy</button>
+          <button class="btn" onclick="applyPreset('analytics')">
+            Analytics-Heavy
+          </button>
+        </div>
+      </div>
+
+      <div class="section-card">
+        <div class="section-header">
+          💾 <span>Storage & Networking</span>
+          <span class="databricks-badge">Step 4</span>
+        </div>
+        <div class="input-group">
+          <label class="input-label">Managed Storage (TB)</label>
+          <input
+            type="number"
+            id="storage"
+            value="5"
+            min="0"
+            step="0.1"
+            onchange="validateInputs(); calculate()"
+          />
+          <div class="help-text">
+            DBFS/Unity Catalog storage (~$23/TB/month per workspace)
+          </div>
+        </div>
+        <div class="input-group">
+          <label class="input-label">Data Egress (GB/month)</label>
+          <input
+            type="number"
+            id="egress"
+            value="100"
+            min="0"
+            onchange="validateInputs(); calculate()"
+          />
+          <div class="help-text">Outbound data transfer (~$0.09/GB)</div>
+        </div>
+      </div>
+
+      <div class="results-section">
+        <div style="font-size: 1.25rem; margin-bottom: 1rem; opacity: 0.9">
+          Estimated Monthly Cost Across All Workspaces
+        </div>
+        <div class="total-amount" id="totalCost">$0</div>
+        <div class="breakdown-grid">
+          <div class="breakdown-item">
+            <div class="breakdown-label">Databricks Units (DBUs)</div>
+            <div class="breakdown-value" id="dbuCost">$0</div>
+          </div>
+          <div class="breakdown-item">
+            <div class="breakdown-label">Cost per DBU Hour</div>
+            <div class="breakdown-value" id="dbuHourCost">$0</div>
+          </div>
+          <div class="breakdown-item">
+            <div class="breakdown-label">Compute Infrastructure</div>
+            <div class="breakdown-value" id="computeCost">$0</div>
+          </div>
+          <div class="breakdown-item">
+            <div class="breakdown-label">Workspace Management</div>
+            <div class="breakdown-value" id="workspaceCost">$0</div>
+          </div>
+          <div class="breakdown-item">
+            <div class="breakdown-label">Enterprise Support</div>
+            <div class="breakdown-value" id="supportCost">$0</div>
+          </div>
+          <div class="breakdown-item">
+            <div class="breakdown-label">Storage + Networking</div>
+            <div class="breakdown-value" id="infraCost">$0</div>
+          </div>
+        </div>
+        <div class="expandable" onclick="toggleExpand('workspaceBreakdown')">
+          Show Per-Workspace Breakdown
+        </div>
+        <div class="expandable-content" id="workspaceBreakdown">
+          <div class="breakdown-grid" id="workspaceCosts"></div>
+        </div>
+        <div style="margin-top: 1rem; font-size: 1rem">
+          Annual Projection: <span id="annualCost">$0</span> (assumes stable
+          usage, add 10-20% for growth)
+        </div>
+        <div class="btn-group">
+          <button class="btn" onclick="saveEstimate()">
+            💾 Export Estimate
+          </button>
+          <button class="btn" onclick="toggleComparison()">
+            🌐 Compare Clouds
+          </button>
+          <button class="btn" onclick="resetForm()">🔄 Reset</button>
+        </div>
+        <div class="comparison-table" id="comparisonTable"></div>
+      </div>
+
+      <div class="section-card">
+        <div class="section-header">🎯 Databricks Cost Optimization</div>
+        <ul class="tips-list">
+          <li>
+            <strong>3-Workspace Architecture:</strong> Separate Dev/Staging/Prod
+            for cost attribution and governance
+          </li>
+          <li>
+            <strong>Auto-termination:</strong> 15-30 min idle timeout across all
+            workspace clusters
+          </li>
+          <li>
+            <strong>Job Clusters:</strong> Use for scheduled workloads (47%
+            cheaper than All-Purpose)
+          </li>
+          <li>
+            <strong>Unity Catalog:</strong> Centralized governance reduces
+            storage duplication across workspaces
+          </li>
+          <li>
+            <strong>Spot Pricing:</strong> Use spot pricing for non-critical
+            workloads to save up to 70% on compute
+          </li>
+        </ul>
+      </div>
+
+      <div class="section-card">
+        <div class="btn-group">
+          <button class="btn" onclick="saveEstimate()">
+            💾 Export Workspace Estimate
+          </button>
+          <button class="btn" onclick="resetForm()">🔄 Reset Calculator</button>
+        </div>
+        <div
+          style="
+            text-align: center;
+            margin-top: 1rem;
+            color: #6c757d;
+            font-size: 0.875rem;
+          "
+        >
+          Powered by HTML and JavaScript • For real detailed quotes contact your
+          Databricks representative
+        </div>
+        <div class="disclaimer">
+          <strong>Important:</strong> This tool provides estimates based on
+          published pricing. Actual costs may vary based on usage patterns,
+          negotiated discounts, and specific configurations. Always validate
+          with your Databricks account team.
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const pricing = {
+        aws: {
+          engineering: 0.3,
+          science: 0.55,
+          analytics: 0.22,
+        },
+        azure: {
+          engineering: 0.32,
+          science: 0.57,
+          analytics: 0.25,
+        },
+        gcp: {
+          engineering: 0.29,
+          science: 0.54,
+          analytics: 0.21,
+        },
+      };
+      const vmCostPerHour = 0.4;
+      const storageCostPerTB = 23;
+      const egressCostPerGB = 0.09;
+      const supportRate = 0.1;
+      const workspaceMonthlyFee = 51;
+      const photonMultiplier = 1.4; // 1.4x DBU cost with Photon
+
+      function updateTiers() {
+        const cloud = document.getElementById("cloud").value;
+        const tier = document.getElementById("tier");
+        const selectedTier = tier.value;
+        if (cloud === "azure") {
+          tier.innerHTML = `<option value="standard">Standard Tier (Will be deprecated on 1st Oct 2026)</option><option value="premium">Premium Tier</option><option value="enterprise">Premium + Enhanced Security Configuration (+10%)</option>`;
+        } else {
+          tier.innerHTML = `<option value="premium">Premium Tier</option><option value="enterprise">Enterprise Tier (+10%)</option>`;
+        }
+        tier.value = selectedTier || "enterprise";
+        calculate();
+      }
+
+      function validateInputs() {
+        const prodHours = document.getElementById("prodHours");
+        const storage = document.getElementById("storage");
+        const egress = document.getElementById("egress");
+        [prodHours, storage, egress].forEach((input) => {
+          const value = parseFloat(input.value);
+          if (
+            isNaN(value) ||
+            value < 0 ||
+            (input.id === "prodHours" && value === 0)
+          ) {
+            input.classList.add("invalid");
+          } else {
+            input.classList.remove("invalid");
+          }
+        });
+      }
+
+      function validateSliders() {
+        const eng = parseFloat(document.getElementById("engMix").value);
+        const ds = parseFloat(document.getElementById("dsMix").value);
+        const anal = parseFloat(document.getElementById("analMix").value);
+        const total = eng + ds + anal;
+        const validation = document.getElementById("sliderValidation");
+        if (Math.abs(total - 100) > 0.5) {
+          validation.style.background = "#fdf2f2";
+          validation.style.borderLeftColor = "#e74c3c";
+          document.getElementById("totalMix").style.color = "#e74c3c";
+          document.getElementById("totalMix").textContent =
+            total.toFixed(1) + "%";
+        } else {
+          validation.style.background = "#fff3cd";
+          validation.style.borderLeftColor = "#f58a00";
+          document.getElementById("totalMix").style.color = "#f58a00";
+          document.getElementById("totalMix").textContent = "100%";
+        }
+      }
+
+      function updateSliders() {
+        const eng = parseFloat(document.getElementById("engMix").value);
+        const ds = parseFloat(document.getElementById("dsMix").value);
+        const anal = parseFloat(document.getElementById("analMix").value);
+
+        const total = eng + ds + anal;
+        if (Math.abs(total - 100) > 0.5) {
+          const diff = 100 - total;
+          const adjustment = diff / 2;
+          const newDS = Math.max(0, Math.min(100, ds + adjustment));
+          const newAnal = Math.max(0, Math.min(100, anal + adjustment));
+          document.getElementById("dsMix").value = newDS.toFixed(1);
+          document.getElementById("analMix").value = newAnal.toFixed(1);
+        }
+        document.getElementById("engValue").textContent = Math.round(eng) + "%";
+        document.getElementById("dsValue").textContent =
+          Math.round(document.getElementById("dsMix").value) + "%";
+        document.getElementById("analValue").textContent =
+          Math.round(document.getElementById("analMix").value) + "%";
+        document.getElementById("totalMix").textContent = "100%";
+        document.getElementById("totalMix").style.color = "#f58a00";
+      }
+
+      function calculate() {
+        validateInputs();
+        const cloud = document.getElementById("cloud").value;
+        const region = document.getElementById("region").value;
+        const securityLevel = document.getElementById("securityLevel").value;
+        const commitment = document.getElementById("commitment").value;
+        const tier = document.getElementById("tier").value;
+        const workspaceCount = parseInt(
+          document.getElementById("workspaceCount").value
+        );
+        const prodHours = Math.max(
+          1,
+          parseFloat(document.getElementById("prodHours").value) || 0
+        );
+        const stagingScale = parseFloat(
+          document.getElementById("stagingScale").value
+        );
+        const devScale = parseFloat(document.getElementById("devScale").value);
+        const engMix =
+          parseFloat(document.getElementById("engMix").value) / 100;
+        const dsMix = parseFloat(document.getElementById("dsMix").value) / 100;
+        const analMix =
+          parseFloat(document.getElementById("analMix").value) / 100;
+        const photon = document.getElementById("photon").value === "true";
+        const spotPricing =
+          document.getElementById("spotPricing").value === "true";
+        document.getElementById("supportGroup").style.display =
+          cloud === "azure" ? "none" : "block";
+
+        const tierMult =
+          tier === "enterprise" ? 1.1 : tier === "standard" ? 0.85 : 1.0;
+        const regionMult =
+          region === "eu" ? 1.1 : region === "asia" ? 1.08 : 1.0;
+        const commitDiscount =
+          commitment === "1year" ? 0.8 : commitment === "3year" ? 0.65 : 1.0;
+        const securityMult =
+          securityLevel === "advanced"
+            ? 1.15
+            : securityLevel === "standard"
+            ? 1.05
+            : 1.0;
+        const photonMult = photon ? photonMultiplier : 1.0;
+        const spotMult = spotPricing ? 0.3 : 1.0; // 70% savings
+
+        const engHoursProd = prodHours * engMix;
+        const dsHoursProd = prodHours * dsMix;
+        const analHoursProd = prodHours * analMix;
+
+        const prodDBU =
+          (engHoursProd * pricing[cloud].engineering +
+            dsHoursProd * pricing[cloud].science +
+            analHoursProd * pricing[cloud].analytics) *
+          tierMult *
+          photonMult *
+          commitDiscount;
+
+        const stagingDBU = prodDBU * stagingScale;
+        const devDBU = prodDBU * devScale;
+        const totalDBU = prodDBU + stagingDBU + devDBU;
+
+        const prodHoursEffective = prodHours;
+        const stagingHours = prodHours * stagingScale;
+        const devHours = prodHours * devScale;
+        const totalHours = prodHoursEffective + stagingHours + devHours;
+
+        const prodCompute = prodHoursEffective * vmCostPerHour * regionMult;
+        const stagingCompute =
+          stagingHours * vmCostPerHour * regionMult * spotMult;
+        const devCompute = devHours * vmCostPerHour * regionMult * spotMult;
+        const computeCost = prodCompute + stagingCompute + devCompute;
+
+        const workspaceOverhead = workspaceCount * workspaceMonthlyFee;
+
+        const storageInput = Math.max(
+          0,
+          parseFloat(document.getElementById("storage").value) || 0
+        );
+        const egressInput = Math.max(
+          0,
+          parseFloat(document.getElementById("egress").value) || 0
+        );
+        const totalStorage = storageInput * storageCostPerTB * workspaceCount;
+        const totalEgress = egressInput * egressCostPerGB * workspaceCount;
+        const infraCost = (totalStorage + totalEgress) * securityMult;
+
+        let support = 0;
+        if (cloud !== "azure") {
+          const override = Math.max(
+            0,
+            parseFloat(document.getElementById("supportOverride").value) || 0
+          );
+          support = override > 0 ? override : totalDBU * supportRate;
+        }
+
+        const monthlyTotal =
+          totalDBU + computeCost + workspaceOverhead + infraCost + support;
+
+        // Per-workspace breakdown
+        const prodScale = prodHoursEffective / totalHours;
+        const stagingScaleRel = stagingHours / totalHours;
+        const devScaleRel = devHours / totalHours;
+        const prodCost =
+          prodDBU +
+          computeCost * prodScale +
+          workspaceMonthlyFee +
+          support +
+          infraCost * prodScale;
+        const stagingCost =
+          stagingDBU +
+          computeCost * stagingScaleRel +
+          workspaceMonthlyFee +
+          infraCost * stagingScaleRel;
+        const devCost =
+          devDBU +
+          computeCost * devScaleRel +
+          workspaceMonthlyFee +
+          infraCost * devScaleRel;
+        document.getElementById("workspaceCosts").innerHTML = `
+            <div class="breakdown-item"><div class="breakdown-label">Production</div><div class="breakdown-value">$${Math.round(
+              prodCost
+            ).toLocaleString()}</div></div>
+            <div class="breakdown-item"><div class="breakdown-label">Staging</div><div class="breakdown-value">$${Math.round(
+              stagingCost
+            ).toLocaleString()}</div></div>
+            <div class="breakdown-item"><div class="breakdown-label">Development</div><div class="breakdown-value">$${Math.round(
+              devCost
+            ).toLocaleString()}</div></div>
+        `;
+
+        // Update display
+        document.getElementById("dbuCost").textContent =
+          "$" + Math.round(totalDBU).toLocaleString();
+        document.getElementById("dbuHourCost").textContent =
+          "$" + (totalHours > 0 ? (totalDBU / totalHours).toFixed(2) : "0.00");
+        document.getElementById("computeCost").textContent =
+          "$" + Math.round(computeCost).toLocaleString();
+        document.getElementById("workspaceCost").textContent =
+          "$" + Math.round(workspaceOverhead).toLocaleString();
+        document.getElementById("supportCost").textContent =
+          cloud === "azure"
+            ? "Included"
+            : parseFloat(document.getElementById("supportOverride").value) > 0
+            ? "$" + Math.round(support).toLocaleString() + " (Custom)"
+            : "$" + Math.round(support).toLocaleString() + " (10% DBU)";
+        document.getElementById("infraCost").textContent =
+          "$" + Math.round(infraCost).toLocaleString();
+        document.getElementById("totalCost").textContent =
+          "$" + Math.round(monthlyTotal).toLocaleString();
+        document.getElementById("annualCost").textContent =
+          "$" + (Math.round(monthlyTotal) * 12).toLocaleString();
+      }
+
+      function saveEstimate() {
+        const now = new Date();
+        const timestamp = now.toISOString();
+        const data = {
+          databricks: {
+            version: "Databricks Cost Estimator Blog Version",
+            author: "Sunny Sharma, Mphasis Datalytyx",
+            timestamp: timestamp,
+            disclaimer: "Estimates based on Oct 2025 pricing",
+          },
+          configuration: {
+            cloudProvider: document.getElementById("cloud").value,
+            region: document.getElementById("region").value,
+            securityLevel: document.getElementById("securityLevel").value,
+            tier: document.getElementById("tier").value,
+            commitment: document.getElementById("commitment").value,
+            workspaceCount: document.getElementById("workspaceCount").value,
+            photon: document.getElementById("photon").value,
+            spotPricing: document.getElementById("spotPricing").value,
+          },
+          environments: {
+            productionHours: document.getElementById("prodHours").value,
+            stagingScale: document.getElementById("stagingScale").value,
+            developmentScale: document.getElementById("devScale").value,
+          },
+          workloads: {
+            dataEngineering: document.getElementById("engMix").value + "%",
+            dataScience: document.getElementById("dsMix").value + "%",
+            dataAnalytics: document.getElementById("analMix").value + "%",
+          },
+          infrastructure: {
+            storageTB: document.getElementById("storage").value,
+            egressGB: document.getElementById("egress").value,
+          },
+          costs: {
+            totalMonthly: document.getElementById("totalCost").textContent,
+            annual: document.getElementById("annualCost").textContent,
+            breakdown: {
+              dbuCosts: document.getElementById("dbuCost").textContent,
+              dbuHour: document.getElementById("dbuHourCost").textContent,
+              compute: document.getElementById("computeCost").textContent,
+              workspaceManagement:
+                document.getElementById("workspaceCost").textContent,
+              support: document.getElementById("supportCost").textContent,
+              infrastructure: document.getElementById("infraCost").textContent,
+            },
+            workspaceBreakdown: {
+              production:
+                document.getElementById("workspaceCosts").children[0]
+                  .textContent,
+              staging:
+                document.getElementById("workspaceCosts").children[1]
+                  .textContent,
+              development:
+                document.getElementById("workspaceCosts").children[2]
+                  .textContent,
+            },
+          },
+          recommendations: {
+            architecture: "3-workspace MLOps pattern recommended",
+            optimization:
+              "Use auto-termination, Job Clusters, and Spot instances",
+          },
+        };
+        const dataStr = JSON.stringify(data, null, 2);
+        const dataBlob = new Blob([dataStr], { type: "application/json" });
+        const url = URL.createObjectURL(dataBlob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = `databricks-estimate-${
+          new Date().toISOString().split("T")[0]
+        }.json`;
+        link.click();
+      }
+
+      function resetForm() {
+        document.getElementById("cloud").value = "aws";
+        document.getElementById("region").value = "us";
+        document.getElementById("securityLevel").value = "standard";
+        document.getElementById("tier").value = "enterprise";
+        document.getElementById("commitment").value = "payg";
+        document.getElementById("prodHours").value = "800";
+        document.getElementById("workspaceCount").value = "3";
+        document.getElementById("stagingScale").value = "0.2";
+        document.getElementById("devScale").value = "0.1";
+        document.getElementById("engMix").value = "60.0";
+        document.getElementById("dsMix").value = "20.0";
+        document.getElementById("analMix").value = "20.0";
+        document.getElementById("storage").value = "5";
+        document.getElementById("egress").value = "100";
+        document.getElementById("supportOverride").value = "";
+        document.getElementById("photon").value = "true";
+        document.getElementById("spotPricing").value = "false";
+        document
+          .querySelectorAll('input[type="number"]')
+          .forEach((input) => input.classList.remove("invalid"));
+        updateSliders();
+        updateTiers();
+        calculate();
+      }
+
+      function toggleExpand(id) {
+        document.getElementById(id).classList.toggle("active");
+      }
+      function toggleComparison() {
+        const table = document.getElementById("comparisonTable");
+        const originalCloud = document.getElementById("cloud").value;
+        table.classList.toggle("active");
+        if (table.classList.contains("active")) {
+          const clouds = ["aws", "azure", "gcp"];
+          let html =
+            '<div class="comparison-row"><div class="comparison-cell"><strong>Cloud</strong></div><div class="comparison-cell"><strong>Total Cost</strong></div></div>';
+          clouds.forEach((cloud) => {
+            document.getElementById("cloud").value = cloud;
+            calculate();
+            html += `<div class="comparison-row"><div class="comparison-cell">${cloud.toUpperCase()}</div><div class="comparison-cell">$${Math.round(
+              parseFloat(
+                document
+                  .getElementById("totalCost")
+                  .textContent.replace("$", "")
+                  .replace(",", "")
+              )
+            ).toLocaleString()}</div></div>`;
+          });
+          document.getElementById("cloud").value = originalCloud;
+          calculate();
+          table.innerHTML = html;
+        }
+      }
+
+      function applyPreset(type) {
+        if (type === "etl") {
+          document.getElementById("engMix").value = "70";
+          document.getElementById("dsMix").value = "15";
+          document.getElementById("analMix").value = "15";
+        } else if (type === "ml") {
+          document.getElementById("engMix").value = "30";
+          document.getElementById("dsMix").value = "50";
+          document.getElementById("analMix").value = "20";
+        } else if (type === "analytics") {
+          document.getElementById("engMix").value = "20";
+          document.getElementById("dsMix").value = "20";
+          document.getElementById("analMix").value = "60";
+        }
+        updateSliders();
+        calculate();
+      }
+
+      // Initialize
+      updateSliders();
+      updateTiers();
+      calculate();
+    </script>
+  </body>
+</html>
